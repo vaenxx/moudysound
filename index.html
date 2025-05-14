@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moudy Sound - Trendy Music</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Benzin Bold';
+            src: url('fonts/Benzin-Bold.otf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        body {
+            background: var(--body-bg, linear-gradient(135deg, #1a1a1a, #2b2b2b));
+            color: #d8d8f0;
+            font-family: 'Inter', 'Arial', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.5s ease;
+        }
+        .starry-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+            opacity: 0.3;
+            z-index: -1;
+            animation: twinkle 10s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        #rain-canvas, #cover-particles, #lightning-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            display: none;
+            pointer-events: none;
+        }
+        #cover-particles {
+            z-index: 10;
+        }
+        .nav-link, .nav-tab, .auth-button {
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            position: relative;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+        .nav-link, .auth-button {
+            color: #ffffff;
+        }
+        .nav-link:hover, .auth-button:hover {
+            color: var(--accent-color, #ffffff);
+            transform: translateY(-2px);
+            text-shadow: 0 0 10px var(--accent-color, #ffffff), 0 0 20px var(--secondary-color, #cccccc);
+        }
+        .auth-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .auth-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 10px var(--accent-color, #ffffff);
+        }
+        .nav-tab {
+            color: #d1d5db;
+            cursor: not-allowed;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px var(--accent-color, #ffffff);
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: var(--card-bg, linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2)));
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            min-width: 160px;
+            right: 0;
+            z-index: 1;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .dropdown-content a {
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            display: block;
+            transition: background 0.3s ease;
+        }
+        .dropdown-content a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-color, #ffffff);
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .song-card, .sponsor-card, .settings-container, .favorite-card, .theme-card {
+            background: var(--card-bg, linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2)));
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .song-card {
+            min-height: 350px;
+            transform: none !important;
+        }
+        .song-card:hover, .sponsor-card:hover, .favorite-card:hover, .theme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px var(--border-color, rgba(255, 255, 255, 0.5));
+        }
+        .song-card.playing {
+            border-left: 4px solid var(--accent-color, #ffffff);
+            box-shadow: 0 0 15px var(--accent-color, #ffffff);
+        }
+        .theme-card.active {
+            border: 2px solid var(--accent-color, #ffffff);
+            box-shadow: 0 0 15px var(--accent-color, #ffffff);
+            transform: scale(1.05);
+        }
+        .sponsor-avatar {
+            width: 128px;
+            height: 128px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 0 auto 1rem;
+            display: block;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+        }
+        .player-bar {
+            background: var(--player-bg, linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(40, 40, 40, 0.7)));
+            backdrop-filter: blur(15px);
+            border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 50;
+        }
+        #favorites-panel {
+            background: var(--player-bg, linear-gradient(to right, rgba(20, 20, 20, 0.9), rgba(40, 40, 40, 0.8)));
+            backdrop-filter: blur(15px);
+            border-left: 1px solid var(--border-color, rgba(255, 255, 255, 0.3));
+            border-top-left-radius: 16px;
+            border-bottom-left-radius: 16px;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            position: fixed;
+            right: 0;
+            top: 90px;
+            bottom: 16px;
+            width: 260px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .favorite-card {
+            border-radius: 8px;
+            padding: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .favorite-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+        .favorite-card img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        .favorite-card h4 {
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+        }
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            height: 4px;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        .progress-bar {
+            background: var(--progress-bg, linear-gradient(to right, #ffffff, #6b7280));
+            height: 4px;
+            border-radius: 2px;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 10px var(--accent-color, #ffffff);
+        }
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 80px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+            transition: background 0.3s ease;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-color, #ffffff);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px var(--accent-color, #ffffff);
+        }
+        .volume-slider:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .player-button {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 8px;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .player-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            animation: pulse 0.8s infinite;
+        }
+        .playing .player-button {
+            animation: pulse 1s infinite;
+        }
+        .heart-button.favorited, .repeat-button.active {
+            color: var(--accent-color);
+            filter: drop-shadow(0 0 8px var(--accent-color));
+        }
+        .cta-button {
+            background: var(--button-bg, linear-gradient(to right, #cccccc, #999999));
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        .cta-button:hover {
+            background: var(--button-hover-bg, linear-gradient(to right, #ffffff, #6b7280));
+            box-shadow: 0 0 15px var(--accent-color, #ffffff);
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+        }
+        .song-title, .sponsor-name, .settings-title {
+            position: relative;
+            display: inline-block;
+        }
+        .song-title::after, .sponsor-name::after, .settings-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--progress-bg, linear-gradient(to right, #ffffff, #6b7280));
+            transition: width 0.3s ease;
+        }
+        .song-card:hover .song-title::after, .sponsor-card:hover .sponsor-name::after {
+            width: 100%;
+        }
+        .settings-container {
+            background: var(--settings-bg, linear-gradient(145deg, rgba(40, 40, 40, 0.4), rgba(60, 60, 60, 0.3)));
+            backdrop-filter: blur(12px);
+            border: 2px solid transparent;
+            border-image: var(--progress-bg, linear-gradient(to right, #ffffff, #6b7280)) 1;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent-color, rgba(255, 255, 255, 0.3));
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .settings-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-color, rgba(255, 255, 255, 0.5));
+        }
+        #home-box {
+            background: rgba(64, 64, 64, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid transparent;
+            border-image: var(--progress-bg, linear-gradient(to right, #ffffff, #6b7280)) 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+        #home-box:hover {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
+        }
+        nav {
+            border-radius: 16px;
+            background: var(--player-bg, linear-gradient(to right, rgba(20, 20, 20, 0.9), rgba(40, 40, 40, 0.8)));
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            backdrop-filter: blur(20px);
+        }
+        #nav-logo {
+            height: 60px;
+            transition: filter 0.5s ease;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .spinning-question {
+            animation: spin 2s linear infinite;
+        }
+        .role {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .role-developer {
+            background: linear-gradient(to right, #ff6b6b, #feca57);
+            color: #1a1a1a;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+        .role-administrator {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            color: #1a1a1a;
+            box-shadow: 0 0 5px rgba(79, 172, 254, 0.3);
+        }
+        .role-helper {
+            background: linear-gradient(to right, #a8e063, #56ab2f);
+            color: #1a1a1a;
+            box-shadow: 0 0 5px rgba(168, 224, 99, 0.3);
+        }
+        .sponsor-card.developer-card {
+            background: linear-gradient(145deg, rgba(255, 107, 107, 0.2), rgba(254, 202, 87, 0.2));
+            border: 2px solid transparent;
+            border-image: linear-gradient(to right, #ff6b6b, #feca57) 1;
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3), 0 0 20px rgba(254, 202, 87, 0.2);
+            transform: scale(1.05);
+        }
+        .sponsor-card.developer-card:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.4), 0 0 25px rgba(254, 202, 87, 0.3);
+        }
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 2rem;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-family: 'Inter', 'Arial', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color, #ffffff);
+            box-shadow: 0 0 8px var(--accent-color, #ffffff);
+        }
+        .search-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #ffffff;
+            opacity: 0.7;
+        }
+        .view-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            padding: 0.5rem;
+            transition: background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+        .view-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        .view-toggle.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: var(--accent-color, #ffffff);
+        }
+        .song-row {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+            margin: 0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .song-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .song-row img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 1rem;
+        }
+        .song-row.playing {
+            border-left: 4px solid var(--accent-color, #ffffff);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        #lyrics-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .lyrics-content {
+            background: var(--card-bg, linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2)));
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 16px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+        .lyrics-content h3 {
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            color: #ffffff;
+            margin-bottom: 1rem;
+        }
+        .lyrics-content p {
+            color: #d8d8f0;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .close-modal svg {
+            width: 20px;
+            height: 20px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <div class="starry-bg"></div>
+    <canvas id="rain-canvas"></canvas>
+    <canvas id="lightning-canvas"></canvas>
+
+    <nav class="fixed top-4 w-[calc(100%-2rem)] mx-4 z-50 bg-opacity-80 p-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <img id="nav-logo" src="images/Untitled-2.png" alt="Moudy Sound Logo">
+            <div class="space-x-6 flex items-center">
+                <a href="#home" class="nav-link text-lg">Home</a>
+                <a href="#trending" class="nav-link text-lg">Gallery</a>
+                <a href="playlists.html" class="nav-link text-lg">Playlists</a> <!-- Заменили span на a -->
+                <span class="nav-tab text-lg">Artists</span>
+                <a href="#sponsors" class="nav-link text-lg">Sponsors</a>
+                <a href="#settings" class="nav-link text-lg">Settings</a>
+                <div id="auth-section">
+                    <a href="login.html" class="auth-button text-lg">Войти</a>
+                    <a href="register.html" class="auth-button text-lg ml-2">Регистрация</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="favorites-panel" class="fixed right-0 top-20 bottom-16 w-64 p-4 overflow-y-auto">
+        <h3 class="text-xl font-semibold text-white mb-4">Favorites</h3>
+        <div id="favorites-list"></div>
+    </div>
+
+    <main class="flex-1 pt-20 pb-32">
+        <section id="home" class="min-h-screen flex items-center justify-center">
+            <div id="home-box" class="text-center">
+                <h2 class="text-6xl font-extrabold text-white mb-4 animate-slide-in">Discover Trendy Music</h2>
+                <p class="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">Dive into the hottest tracks of the moment with Moudy Sound, where music meets cosmic vibes.</p>
+                <a href="#trending" class="cta-button text-white px-8 py-4 rounded-full text-lg transition">Explore Now</a>
+            </div>
+        </section>
+
+        <section id="trending" class="py-16">
+            <div class="max-w-7xl mx-auto px-4">
+                <h2 class="text-4xl font-bold text-white mb-8 text-center">Our Gallery</h2>
+                <div class="search-bar">
+                    <input type="text" id="search-input" class="search-input" placeholder="Поиск песен...">
+                    <svg class="search-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <button id="grid-view-btn" class="view-toggle active" title="Grid View">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <button id="list-view-btn" class="view-toggle" title="List View">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="trending-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 items-start"></div>
+            </div>
+        </section>
+
+        <section id="sponsors" class="py-16 bg-[var(--body-bg)]">
+            <div class="max-w-7xl mx-auto px-4">
+                <h2 class="text-4xl font-bold text-white mb-8 text-center">Our Administrators</h2>
+                <div id="sponsors-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start"></div>
+            </div>
+        </section>
+
+        <section id="settings" class="py-16 bg-[var(--body-bg)]">
+            <div class="max-w-7xl mx-auto px-4">
+                <h2 class="text-4xl font-bold text-white mb-8 text-center">Settings</h2>
+                <div class="max-w-3xl mx-auto settings-container rounded-xl p-8">
+                    <h3 class="settings-title text-2xl font-semibold text-white mb-6">Select Theme</h3>
+                    <div id="theme-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="player-bar" class="player-bar fixed bottom-0 w-full p-4 bg-opacity-80">
+        <canvas id="cover-particles"></canvas>
+        <div class="max-w-7xl mx-auto flex items-center justify-between relative">
+            <div class="flex items-center space-x-4">
+                <img id="player-cover" src="https://via.placeholder.com/50x50" alt="Song Cover" class="w-12 h-12 rounded-md border border-gray-700">
+                <div>
+                    <h4 id="player-title" class="text-white font-semibold">Select a song</h4>
+                    <p id="player-artist" class="text-gray-400 text-sm">Artist</p>
+                </div>
+            </div>
+            <div class="flex-1 mx-8">
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar w-0" id="progress-bar"></div>
+                </div>
+                <div class="text-gray-400 text-sm flex justify-between mt-1">
+                    <span id="current-time">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 player-controls">
+                <button onclick="togglePlay()" class="player-button text-white hover:text-[var(--accent-color)] transition">
+                    <svg id="play-icon" class="w-8 h-8 spinning-question" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14a1 1 0 110-2 1 1 0 010 2zm1.5-5.5c-.3.5-.8.9-1.5.9s-1.2-.4-1.5-.9c-.2-.3-.2-.7 0-1 .3-.5.8-.9 1.5-.9s1.2.4 1.5.9c.2.3.2.7 0 1z"/>
+                    </svg>
+                </button>
+                <button onclick="stopSong()" class="player-button text-white hover:text-[var(--accent-color)] transition">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+                </button>
+                <button id="repeat-button" class="player-button repeat-button text-white hover:text-[var(--accent-color)] transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v4l4-4v12l-4-4v4H4V4z"/>
+                    </svg>
+                </button>
+                <button id="favorite-button" class="player-button heart-button text-white hover:text-[var(--accent-color)] transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                </button>
+                <button id="lyrics-button" class="player-button text-white hover:text-[var(--accent-color)] transition" onclick="toggleLyrics()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-9-8h.01M4 4h16v16H4V4z"/>
+                    </svg>
+                </button>
+                <input type="range" min="0" max="1" step="0.01" value="1" class="volume-slider" id="volume-slider">
+            </div>
+        </div>
+    </div>
+
+    <div id="lyrics-modal">
+        <div class="lyrics-content">
+            <button class="close-modal" onclick="toggleLyrics()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <h3 id="lyrics-title" class="text-2xl font-semibold"></h3>
+            <p id="lyrics-text" class="text-gray-300"></p>
+        </div>
+    </div>
+
+    <audio id="audio-player" src=""></audio>
+
+    <script>
+        if (typeof gsap === 'undefined') {
+            console.error('GSAP не загружен!');
+        } else {
+            console.log('GSAP загружен:', gsap.version);
+            if (typeof ScrollTrigger !== 'undefined') {
+                gsap.registerPlugin(ScrollTrigger);
+                console.log('ScrollTrigger зарегистрирован');
+            } else {
+                console.error('ScrollTrigger не загружен');
+            }
+        }
+
+        const audio = document.getElementById('audio-player');
+        const playIcon = document.getElementById('play-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
+        const playerTitle = document.getElementById('player-title');
+        const playerArtist = document.getElementById('player-artist');
+        const playerCover = document.getElementById('player-cover');
+        const volumeSlider = document.getElementById('volume-slider');
+        const favoriteButton = document.getElementById('favorite-button');
+        const repeatButton = document.getElementById('repeat-button');
+        const lyricsButton = document.getElementById('lyrics-button');
+        const lyricsModal = document.getElementById('lyrics-modal');
+        const lyricsTitle = document.getElementById('lyrics-title');
+        const lyricsText = document.getElementById('lyrics-text');
+        const playerBar = document.getElementById('player-bar');
+        const playerControls = document.querySelector('.player-controls');
+        const homeBox = document.getElementById('home-box');
+        const navLogo = document.getElementById('nav-logo');
+        const authSection = document.getElementById('auth-section');
+        const searchInput = document.getElementById('search-input');
+        const gridViewBtn = document.getElementById('grid-view-btn');
+        const listViewBtn = document.getElementById('list-view-btn');
+        const trendingGrid = document.getElementById('trending-grid');
+
+        let isPlaying = false;
+        let isRepeat = localStorage.getItem('repeat') === 'true';
+        let currentSong = null;
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        let user = JSON.parse(localStorage.getItem('user')) || null;
+        let viewMode = localStorage.getItem('viewMode') || 'grid';
+
+        const tracks = [
+            { title: 'lonelyy', artist: 'mapt0v', src: 'songs/lonelyy.mp3', cover: 'images/lonelyy.png', duration: '3:45', genre: 'Pop', lyricsFile: 'lyrics/lonelyy.txt' },
+            { title: 'любит/ненавидит - Slowed', artist: 'whitek3d, wtwice, kn1gsw0rd', src: 'songs/любит-ненавидит - Slowed.mp3', cover: 'images/любит-ненавидит-slowed.png', duration: '4:00', genre: 'Phonk', lyricsFile: 'lyrics/lubit-nenavidit.txt' },
+            { title: 'IMYA', artist: '9mice', src: 'songs/IMYA.mp3', cover: 'images/IMYA.png', duration: '3:30', genre: 'Pop', lyricsFile: 'lyrics/imya.txt' }, 
+            { title: 'Самый лучший день', artist: 'Кишлак', src: 'songs/Самый лучший день - Кишлак.mp3', cover: 'images/Самый лучший день by Кишлак.jpg', duration: '3:15', genre: 'Rock', lyricsFile: 'lyrics/samyi-luchshiy-den.txt' },
+            { title: 'Катюха', artist: 'whitek3d', src: 'songs/SpotiMate.io - Катюха - whitek3d.mp3', cover: 'images/artworks-9ROOr4yPImuU4Npx-56ExQA-t500x500.jpeg', duration: '3:20', genre: 'Phonk', lyricsFile: 'lyrics/katyusha.txt' },
+            { title: 'марафеты', artist: 'dabackwood', src: 'songs/SpotiMate.io - марафеты - dabbackwood.mp3', cover: 'images/artworks-D1ZqGW7NtyzyVOmT-kFPAJA-t500x500.jpeg', duration: '2:50', genre: 'Hip-Hop', lyricsFile: 'lyrics/marafety.txt' },
+            { title: 'спокойной ночи', artist: 'fallen777angel', src: 'songs/ыыыю.mp3', cover: 'images/600x600bf-60.jpg', duration: '3:00', genre: 'Pop', lyricsFile: 'lyrics/spokoynoy-nochi.txt' },
+            { title: 'pokoi', artist: 'skit', src: 'songs/SpotiMate.io - pokoi - skit (1).mp3', cover: 'images/Cover of pokoi by skit.jpg', duration: '3:10', genre: 'Electronic', lyricsFile: 'lyrics/pokoi.txt' },
+            { title: 'upset', artist: 'dabackwood', src: 'songs/SpotiMate.io - upset - dabbackwood.mp3', cover: 'images/artworks-Or32MlkCHCkE-0-t500x500.jpg', duration: '2:55', genre: 'Hip-Hop', lyricsFile: 'lyrics/upset.txt' },
+            { title: 'дцп-кликер', artist: '12kkot', src: 'songs/дцп-кликер.mp3', cover: 'images/image.png', duration: '3:25', genre: 'Experimental', lyricsFile: 'lyrics/dcp-kliker.txt' },
+            { title: 'under your spell', artist: 'Snow Strippers', src: 'songs/Under Your Spell.mp3', cover: 'images/Cover of Under Your Spell by Snow Strippers.jpg', duration: '3:40', genre: 'Electronic', lyricsFile: 'lyrics/under-your-spell.txt' },
+            { title: 'ты чё обиделась', artist: 'madk1d, тёмный принц', src: 'songs/madk1d, тёмный принц - ты че обиделась.mp3', cover: 'images/35253.jpg', duration: '3:20', genre: 'Hip-Hop', lyricsFile: 'lyrics/ty-che-obidelsya.txt' },
+            { title: 'распять', artist: 'geyrock, tewiq, madk1d', src: 'songs/greyrock, tewiq, madk1d - распять (новая музыка).mp3', cover: 'images/Без названия (1).jpeg', duration: '3:30', genre: 'Rock', lyricsFile: 'lyrics/raspjat.txt' },
+            { title: '2 лимузина', artist: 'Napylniik', src: 'songs/Napylniik - 2 лимузина.mp3', cover: 'images/Без названия (2).jpeg', duration: '3:10', genre: 'Pop', lyricsFile: 'lyrics/2-limuzina.txt' }
+        ];
+
+        let filteredTracks = [...tracks];
+
+        const themes = {
+            'purple-blue': {
+                '--body-bg': 'linear-gradient(135deg, #1e1e3f, #2a1b5e)',
+                '--card-bg': 'linear-gradient(145deg, rgba(40, 30, 90, 0.3), rgba(60, 50, 120, 0.2))',
+                '--settings-bg': 'linear-gradient(145deg, rgba(50, 40, 100, 0.4), rgba(70, 60, 130, 0.3))',
+                '--player-bg': 'linear-gradient(to right, rgba(30, 20, 80, 0.8), rgba(50, 40, 100, 0.7))',
+                '--progress-bg': 'linear-gradient(to right, #a78bff, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #7c3aed, #4f46e5)',
+                '--button-hover-bg': 'linear-gradient(to right, #9f67fa, #6b7280)',
+                '--accent-color': '#a78bff',
+                '--secondary-color': '#7c3aed',
+                '--border-color': 'rgba(167, 139, 255, 0.2)',
+                'logo-filter': 'hue-rotate(250deg) brightness(1.2)'
+            },
+            'red-black': {
+                '--body-bg': 'linear-gradient(135deg, #2b0000, #1a0000)',
+                '--card-bg': 'linear-gradient(145deg, rgba(50, 0, 0, 0.3), rgba(80, 0, 0, 0.2))',
+                '--settings-bg': 'linear-gradient(145deg, rgba(60, 0, 0, 0.4), rgba(80, 0, 0, 0.3))',
+                '--player-bg': 'linear-gradient(to right, rgba(40, 0, 0, 0.8), rgba(60, 0, 0, 0.7))',
+                '--progress-bg': 'linear-gradient(to right, #ff4d4d, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cc0000, #990000)',
+                '--button-hover-bg': 'linear-gradient(to right, #ff6666, #6b7280)',
+                '--accent-color': '#ff4d4d',
+                '--secondary-color': '#cc0000',
+                '--border-color': 'rgba(255, 77, 77, 0.2)',
+                'logo-filter': 'hue-rotate(0deg) brightness(1.1)'
+            },
+            'green-teal': {
+                '--body-bg': 'linear-gradient(135deg, #002b2b, #001a1a)',
+                '--card-bg': 'linear-gradient(145deg, rgba(0, 50, 50, 0.3), rgba(0, 80, 80, 0.2))',
+                '--settings-bg': 'linear-gradient(145deg, rgba(0, 60, 60, 0.4), rgba(0, 80, 80, 0.3))',
+                '--player-bg': 'linear-gradient(to right, rgba(0, 40, 40, 0.8), rgba(0, 60, 60, 0.7))',
+                '--progress-bg': 'linear-gradient(to right, #00cc99, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #009966, #006644)',
+                '--button-hover-bg': 'linear-gradient(to right, #33ffcc, #6b7280)',
+                '--accent-color': '#00cc99',
+                '--secondary-color': '#009966',
+                '--border-color': 'rgba(0, 204, 153, 0.2)',
+                'logo-filter': 'hue-rotate(160deg) brightness(1.3)'
+            },
+            'black-white': {
+                '--body-bg': 'linear-gradient(135deg, #1a1a1a, #2b2b2b)',
+                '--card-bg': 'linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2))',
+                '--settings-bg': 'linear-gradient(145deg, rgba(40, 40, 40, 0.4), rgba(60, 60, 60, 0.3))',
+                '--player-bg': 'linear-gradient(to right, rgba(20, 20, 20, 0.8), rgba(40, 40, 40, 0.7))',
+                '--progress-bg': 'linear-gradient(to right, #ffffff, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cccccc, #999999)',
+                '--button-hover-bg': 'linear-gradient(to right, #ffffff, #6b7280)',
+                '--accent-color': '#ffffff',
+                '--secondary-color': '#cccccc',
+                '--border-color': 'rgba(255, 255, 255, 0.2)',
+                'logo-filter': 'brightness(1.5)'
+            },
+            'green-red': {
+                '--body-bg': 'linear-gradient(135deg, #1a3c34, #3c1a1a)',
+                '--card-bg': 'linear-gradient(145deg, rgba(0, 80, 60, 0.3), rgba(80, 0, 0, 0.2))',
+                '--settings-bg': 'linear-gradient(145deg, rgba(0, 100, 80, 0.4), rgba(100, 0, 0, 0.3))',
+                '--player-bg': 'linear-gradient(to right, rgba(0, 60, 40, 0.8), rgba(60, 0, 0, 0.7))',
+                '--progress-bg': 'linear-gradient(to right, #ff3333, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cc3333, #006633)',
+                '--button-hover-bg': 'linear-gradient(to right, #ff6666, #6b7280)',
+                '--accent-color': '#ff3333',
+                '--secondary-color': '#cc3333',
+                '--border-color': 'rgba(255, 51, 51, 0.2)',
+                'logo-filter': 'hue-rotate(0deg) brightness(1.2)'
+            },
+            'blue-pink': {
+                '--body-bg': 'linear-gradient(135deg, #e0f7ff, #ffe0f0)',
+                '--card-bg': 'linear-gradient(145deg, rgba(100, 180, 255, 0.3), rgba(255, 100, 180, 0.2))',
+                '--settings-bg': 'linear-gradient(145deg, rgba(120, 200, 255, 0.4), rgba(255, 120, 200, 0.3))',
+                '--player-bg': 'linear-gradient(to right, rgba(80, 160, 255, 0.8), rgba(255, 80, 160, 0.7))',
+                '--progress-bg': 'linear-gradient(to right, #ff66cc, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #3399ff, #ff3399)',
+                '--button-hover-bg': 'linear-gradient(to right, #66b2ff, #6b7280)',
+                '--accent-color': '#ff66cc',
+                '--secondary-color': '#3399ff',
+                '--border-color': 'rgba(255, 102, 204, 0.2)',
+                'logo-filter': 'hue-rotate(300deg) brightness(1.3)'
+            }
+        };
+
+        function applyTheme(theme) {
+            console.log('Применяется тема:', theme);
+            if (!themes[theme]) {
+                console.error('Тема не найдена:', theme);
+                return;
+            }
+            const root = document.documentElement;
+            Object.entries(themes[theme]).forEach(([key, value]) => {
+                console.log(`Установка ${key}: ${value}`);
+                if (key === 'logo-filter') {
+                    navLogo.style.filter = value;
+                } else {
+                    root.style.setProperty(key, value);
+                }
+            });
+            localStorage.setItem('theme', theme);
+            renderThemes(theme);
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'black-white';
+        if (themes[savedTheme]) {
+            applyTheme(savedTheme);
+        } else {
+            console.warn('Сохранённая тема не найдена, применяем black-white');
+            applyTheme('black-white');
+        }
+
+        function updateAuthSection() {
+            if (user && user.username) {
+                authSection.innerHTML = `
+                    <div class="dropdown">
+                        <img src="${user.avatar || 'https://via.placeholder.com/40?text=?'}"
+                             alt="User Avatar" class="user-avatar"
+                             onclick="toggleDropdown()">
+                        <div id="user-dropdown" class="dropdown-content">
+                            <a href="profile.html">Профиль</a>
+                            <a href="#" onclick="logout(); return false;">Выход</a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                authSection.innerHTML = `
+                    <a href="login.html" class="auth-button text-lg">Войти</a>
+                    <a href="register.html" class="auth-button text-lg ml-2">Регистрация</a>
+                `;
+            }
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            user = null;
+            updateAuthSection();
+            window.location.reload();
+        }
+
+        updateAuthSection();
+
+        homeBox.addEventListener('mousemove', (e) => {
+            const rect = homeBox.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const mouseX = e.clientX - centerX;
+            const mouseY = e.clientY - centerY;
+            const rotateX = (mouseY / rect.height) * 20;
+            const rotateY = -(mouseX / rect.width) * 20;
+            gsap.to(homeBox, {
+                rotationX: rotateX,
+                rotationY: rotateY,
+                rotationZ: (mouseX / rect.width) * 5,
+                scale: 1.02,
+                duration: 0.3,
+                ease: 'power2.out'
+            });
+        });
+
+        homeBox.addEventListener('mouseleave', () => {
+            gsap.to(homeBox, {
+                rotationX: 0,
+                rotationY: 0,
+                rotationZ: 0,
+                scale: 1,
+                duration: 0.5,
+                ease: 'power2.out'
+            });
+        });
+
+        const rainCanvas = document.getElementById('rain-canvas');
+        const rainCtx = rainCanvas.getContext('2d');
+        let rainParticles = [];
+
+        function initRainCanvas() {
+            rainCanvas.width = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+        }
+
+        function createRainParticle() {
+            return {
+                x: Math.random() * rainCanvas.width,
+                y: -10,
+                speed: 2 + Math.random() * 3,
+                size: 2 + Math.random() * 2,
+                opacity: 0.5 + Math.random() * 0.5
+            };
+        }
+
+        function updateRain() {
+            if (!isPlaying) {
+                rainCanvas.style.display = 'none';
+                rainParticles = [];
+                return;
+            }
+            rainCanvas.style.display = 'block';
+            rainCtx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            rainCtx.fillStyle = accentColor;
+
+            if (Math.random() < 0.2) {
+                rainParticles.push(createRainParticle());
+            }
+
+            rainParticles = rainParticles.filter(p => p.y < rainCanvas.height);
+            rainParticles.forEach(p => {
+                p.y += p.speed;
+                rainCtx.globalAlpha = p.opacity;
+                rainCtx.beginPath();
+                rainCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                rainCtx.fill();
+            });
+
+            requestAnimationFrame(updateRain);
+        }
+
+        const lightningCanvas = document.getElementById('lightning-canvas');
+        const lightningCtx = lightningCanvas.getContext('2d');
+        let lightningBolts = [];
+
+        function initLightningCanvas() {
+            lightningCanvas.width = window.innerWidth;
+            lightningCanvas.height = window.innerHeight;
+        }
+
+        function createLightningBolt() {
+            return {
+                x: Math.random() * lightningCanvas.width,
+                y: 0,
+                segments: [],
+                opacity: 1,
+                lifetime: 30 + Math.random() * 20
+            };
+        }
+
+        function drawLightning(bolt) {
+            lightningCtx.beginPath();
+            lightningCtx.strokeStyle = `rgba(255, 255, 255, ${bolt.opacity})`;
+            lightningCtx.lineWidth = 2;
+            lightningCtx.moveTo(bolt.x, bolt.y);
+
+            let currentY = bolt.y;
+            bolt.segments = [];
+            while (currentY < lightningCanvas.height * 0.7) {
+                const nextX = bolt.x + (Math.random() * 40 - 20);
+                const nextY = currentY + (Math.random() * 50 + 20);
+                bolt.segments.push({ x: nextX, y: nextY });
+                currentY = nextY;
+            }
+
+            bolt.segments.forEach(segment => {
+                lightningCtx.lineTo(segment.x, segment.y);
+            });
+            lightningCtx.stroke();
+        }
+
+        function updateLightning() {
+            if (!isPlaying) {
+                lightningCanvas.style.display = 'none';
+                lightningBolts = [];
+                return;
+            }
+            lightningCanvas.style.display = 'block';
+            lightningCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
+
+            if (Math.random() < 0.02) {
+                lightningBolts.push(createLightningBolt());
+            }
+
+            lightningBolts = lightningBolts.filter(bolt => bolt.lifetime > 0);
+            lightningBolts.forEach(bolt => {
+                bolt.lifetime -= 1;
+                bolt.opacity = bolt.lifetime / 50;
+                drawLightning(bolt);
+            });
+
+            requestAnimationFrame(updateLightning);
+        }
+
+        function initEffects() {
+            initRainCanvas();
+            initLightningCanvas();
+            window.addEventListener('resize', () => {
+                initRainCanvas();
+                initLightningCanvas();
+            });
+            requestAnimationFrame(updateRain);
+            requestAnimationFrame(updateLightning);
+        }
+
+        initEffects();
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function updateProgress() {
+            if (!audio.duration) return;
+            const progressPercent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+            durationEl.textContent = formatTime(audio.duration);
+        }
+
+        function setProgress(e) {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        }
+
+        audio.addEventListener('timeupdate', updateProgress);
+        progressContainer.addEventListener('click', setProgress);
+
+        audio.addEventListener('ended', () => {
+            if (isRepeat) {
+                audio.currentTime = 0;
+                audio.play();
+            } else {
+                stopSong();
+            }
+        });
+
+        volumeSlider.addEventListener('input', () => {
+            audio.volume = volumeSlider.value;
+        });
+
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                playIcon.innerHTML = `
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>`;
+                playerControls.classList.remove('playing');
+            } else {
+                if (currentSong) {
+                    audio.play();
+                    isPlaying = true;
+                    playIcon.innerHTML = `
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                    </svg>`;
+                    playerControls.classList.add('playing');
+                }
+            }
+            updateEffects();
+            updatePlayingTrack();
+        }
+
+        function stopSong() {
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            playIcon.innerHTML = `
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>`;
+            playerControls.classList.remove('playing');
+            updateEffects();
+            updatePlayingTrack();
+        }
+
+        function updateEffects() {
+            requestAnimationFrame(updateRain);
+            requestAnimationFrame(updateLightning);
+        }
+
+        function updateLyricsButton() {
+            if (currentSong && currentSong.lyricsFile) {
+                lyricsButton.style.display = 'block';
+            } else {
+                lyricsButton.style.display = 'none';
+            }
+        }
+
+        function playSong(song) {
+            currentSong = song;
+            audio.src = song.src;
+            playerTitle.textContent = song.title;
+            playerArtist.textContent = song.artist;
+            playerCover.src = song.cover;
+            durationEl.textContent = song.duration;
+            audio.play();
+            isPlaying = true;
+            playIcon.innerHTML = `
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                </svg>`;
+            playerControls.classList.add('playing');
+            updateFavoritesButton();
+            updateLyricsButton();
+            updateEffects();
+            updatePlayingTrack();
+        }
+
+        function toggleLyrics() {
+            if (lyricsModal.style.display === 'flex') {
+                lyricsModal.style.display = 'none';
+            } else if (currentSong && currentSong.lyricsFile) {
+                lyricsModal.style.display = 'flex';
+                lyricsTitle.textContent = `${currentSong.title} - ${currentSong.artist}`;
+                fetch(currentSong.lyricsFile)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Не удалось загрузить текст песни');
+                        return response.text();
+                    })
+                    .then(text => {
+                        lyricsText.textContent = text;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        lyricsText.textContent = 'Не удалось загрузить текст песни.';
+                    });
+            }
+        }
+
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            repeatButton.classList.toggle('active', isRepeat);
+            localStorage.setItem('repeat', isRepeat);
+        }
+
+        repeatButton.addEventListener('click', toggleRepeat);
+        repeatButton.classList.toggle('active', isRepeat);
+
+        function updateFavoritesButton() {
+            const isFavorited = favorites.some(fav => fav.src === currentSong?.src);
+            favoriteButton.classList.toggle('favorited', isFavorited);
+        }
+
+        function toggleFavorite() {
+            if (!currentSong) return;
+            const index = favorites.findIndex(fav => fav.src === currentSong.src);
+            if (index === -1) {
+                favorites.push(currentSong);
+            } else {
+                favorites.splice(index, 1);
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            updateFavoritesButton();
+            renderFavorites();
+        }
+
+        favoriteButton.addEventListener('click', toggleFavorite);
+
+        function renderFavorites() {
+            const favoritesList = document.getElementById('favorites-list');
+            favoritesList.innerHTML = '';
+            favorites.forEach(song => {
+                const card = document.createElement('div');
+                card.className = 'favorite-card flex items-center';
+                card.innerHTML = `
+                    <img src="${song.cover}" alt="${song.title}">
+                    <div>
+                        <h4 class="text-sm text-white">${song.title}</h4>
+                        <p class="text-xs text-gray-400">${song.artist}</p>
+                    </div>
+                `;
+                card.addEventListener('click', () => playSong(song));
+                favoritesList.appendChild(card);
+            });
+        }
+
+        function updatePlayingTrack() {
+            const songCards = document.querySelectorAll('.song-card');
+            songCards.forEach(card => {
+                const title = card.querySelector('.song-title').textContent;
+                const isCurrent = currentSong && title === currentSong.title && isPlaying;
+                card.classList.toggle('playing', isCurrent);
+                if (isCurrent) {
+                    gsap.to(card, {
+                        scale: 1.05,
+                        duration: 1,
+                        repeat: -1,
+                        yoyo: true,
+                        ease: 'sine.inOut'
+                    });
+                } else {
+                    gsap.killTweensOf(card);
+                    gsap.to(card, { scale: 1, duration: 0.3 });
+                }
+            });
+        }
+
+        function renderTracks() {
+            trendingGrid.innerHTML = '';
+            filteredTracks.forEach(song => {
+                const card = document.createElement('div');
+                if (viewMode === 'grid') {
+                    card.className = 'song-card rounded-xl p-4 text-center';
+                    card.innerHTML = `
+                        <img src="${song.cover}" alt="${song.title}" class="w-full h-48 object-cover rounded-lg mb-4">
+                        <h3 class="song-title text-lg text-white font-semibold mb-2">${song.title}</h3>
+                        <p class="text-gray-400 mb-2">${song.artist}</p>
+                        <p class="text-gray-500 text-sm">${song.duration} • ${song.genre}</p>
+                    `;
+                } else {
+                    card.className = 'song-row song-card bg-opacity-50';
+                    card.innerHTML = `
+                        <img src="${song.cover}" alt="${song.title}">
+                        <div>
+                            <h3 class="song-title text-lg text-white font-semibold">${song.title}</h3>
+                            <p class="text-gray-400">${song.artist}</p>
+                            <p class="text-gray-500 text-sm">${song.duration} • ${song.genre}</p>
+                        </div>
+                    `;
+                }
+                card.addEventListener('click', () => playSong(song));
+                trendingGrid.appendChild(card);
+            });
+
+            trendingGrid.className = viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 items-start'
+                : 'grid grid-cols-1 gap-0';
+            updatePlayingTrack();
+        }
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            filteredTracks = tracks.filter(song =>
+                song.title.toLowerCase().includes(query) ||
+                song.artist.toLowerCase().includes(query) ||
+                song.genre.toLowerCase().includes(query)
+            );
+            renderTracks();
+        });
+
+        gridViewBtn.addEventListener('click', () => {
+            viewMode = 'grid';
+            localStorage.setItem('viewMode', viewMode);
+            gridViewBtn.classList.add('active');
+            listViewBtn.classList.remove('active');
+            renderTracks();
+        });
+
+        listViewBtn.addEventListener('click', () => {
+            viewMode = 'list';
+            localStorage.setItem('viewMode', viewMode);
+            listViewBtn.classList.add('active');
+            gridViewBtn.classList.remove('active');
+            renderTracks();
+        });
+
+        if (viewMode === 'grid') {
+            gridViewBtn.classList.add('active');
+        } else {
+            listViewBtn.classList.add('active');
+        }
+
+        const sponsors = [
+            { name: 'Moudy', avatar: 'https://via.placeholder.com/128?text=M', role: 'Developer', bio: 'Creator of Moudy Sound.' },
+            { name: 'Alex', avatar: 'https://via.placeholder.com/128?text=A', role: 'Administrator', bio: 'Manages the platform.' },
+            { name: 'Sophie', avatar: 'https://via.placeholder.com/128?text=S', role: 'Helper', bio: 'Supports users.' }
+        ];
+
+        function renderSponsors() {
+            const sponsorsGrid = document.getElementById('sponsors-grid');
+            sponsors.forEach(sponsor => {
+                const card = document.createElement('div');
+                card.className = `sponsor-card rounded-xl p-6 text-center ${sponsor.role.toLowerCase() === 'developer' ? 'developer-card' : ''}`;
+                card.innerHTML = `
+                    <img src="${sponsor.avatar}" alt="${sponsor.name}" class="sponsor-avatar">
+                    <h3 class="sponsor-name text-xl text-white font-semibold mb-2">${sponsor.name}</h3>
+                    <p class="text-gray-400 mb-4">${sponsor.bio}</p>
+                    <div class="role role-${sponsor.role.toLowerCase()}">${sponsor.role}</div>
+                `;
+                sponsorsGrid.appendChild(card);
+            });
+        }
+
+        function renderThemes(currentTheme) {
+            const themeGrid = document.getElementById('theme-grid');
+            themeGrid.innerHTML = '';
+            Object.keys(themes).forEach(theme => {
+                const card = document.createElement('div');
+                card.className = `theme-card rounded-lg p-4 text-center cursor-pointer ${theme === currentTheme ? 'active' : ''}`;
+                card.innerHTML = `
+                    <h4 class="text-white font-semibold">${theme.replace('-', ' ').toUpperCase()}</h4>
+                    <div class="w-16 h-16 mx-auto mt-2 rounded-full" style="background: ${themes[theme]['--body-bg']};"></div>
+                `;
+                card.addEventListener('click', () => applyTheme(theme));
+                themeGrid.appendChild(card);
+            });
+        }
+
+        const coverCanvas = document.getElementById('cover-particles');
+        const coverCtx = coverCanvas.getContext('2d');
+        let coverParticles = [];
+
+        function initCoverCanvas() {
+            coverCanvas.width = playerBar.clientWidth;
+            coverCanvas.height = playerBar.clientHeight;
+        }
+
+        function createCoverParticle() {
+            return {
+                x: playerCover.offsetLeft + playerCover.width / 2,
+                y: playerCover.offsetTop + playerCover.height / 2,
+                radius: 2 + Math.random() * 3,
+                angle: Math.random() * Math.PI * 2,
+                speed: 1 + Math.random() * 2,
+                opacity: 1,
+                lifetime: 60
+            };
+        }
+
+        function updateCoverParticles() {
+            if (!isPlaying) {
+                coverCanvas.style.display = 'none';
+                coverParticles = [];
+                return;
+            }
+            coverCanvas.style.display = 'block';
+            coverCtx.clearRect(0, 0, coverCanvas.width, coverCanvas.height);
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            coverCtx.fillStyle = accentColor;
+
+            if (Math.random() < 0.3) {
+                coverParticles.push(createCoverParticle());
+            }
+
+            coverParticles = coverParticles.filter(p => p.lifetime > 0);
+            coverParticles.forEach(p => {
+                p.x += Math.cos(p.angle) * p.speed;
+                p.y += Math.sin(p.angle) * p.speed;
+                p.lifetime -= 1;
+                p.opacity = p.lifetime / 60;
+                coverCtx.globalAlpha = p.opacity;
+                coverCtx.beginPath();
+                coverCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                coverCtx.fill();
+            });
+
+            requestAnimationFrame(updateCoverParticles);
+        }
+
+        initCoverCanvas();
+        window.addEventListener('resize', initCoverCanvas);
+        requestAnimationFrame(updateCoverParticles);
+
+        renderTracks();
+        renderSponsors();
+        renderThemes(savedTheme);
+        renderFavorites();
+    </script>
+</body>
+</html>

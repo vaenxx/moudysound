@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moudy Sound - Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://api.openweathermap.org/data/2.5/weather?q=Kyiv&appid=YOUR_API_KEY&units=metric"></script>
+    <style>
+        @font-face {
+            font-family: 'Benzin Bold';
+            src: url('fonts/Benzin-Bold.otf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        body {
+            background: var(--body-bg, linear-gradient(135deg, #1a1a1a, #2b2b2b));
+            color: #d8d8f0;
+            font-family: 'Inter', 'Arial', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.5s ease;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 80px;
+        }
+        .starry-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+            opacity: 0.3;
+            z-index: -1;
+            animation: twinkle 10s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+        .profile-container {
+            background: var(--card-bg, linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2)));
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .profile-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        h2 {
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .profile-input, .profile-textarea, .profile-select {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-family: 'Inter', 'Arial', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .profile-input:focus, .profile-textarea:focus, .profile-select:focus {
+            outline: none;
+            border-color: var(--accent-color, #ffffff);
+            box-shadow: 0 0 8px var(--accent-color, #ffffff);
+        }
+        .profile-button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            background: var(--button-bg, linear-gradient(to right, #cccccc, #999999));
+            color: #ffffff;
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        .profile-button:hover {
+            background: var(--button-hover-bg, linear-gradient(to right, #ffffff, #6b7280));
+            box-shadow: 0 0 15px var(--accent-color, #ffffff);
+        }
+        .avatar-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            margin: 0 auto 1rem;
+            display: block;
+        }
+        .effect-preview {
+            width: 100%;
+            height: 100px;
+            margin: 1rem 0;
+            background: var(--accent-color, #ffffff);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000000;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .playlist-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .playlist-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Starry Background -->
+    <div class="starry-bg"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed top-4 w-[calc(100%-2rem)] mx-4 z-50 bg-opacity-80 p-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <img src="https://i.ibb.co/rKyWr7hM/Untitled-2.png" alt="Moudy Sound Logo" class="h-12">
+            <a href="index.html" class="auth-button text-lg">Назад</a>
+        </div>
+    </nav>
+
+    <!-- Profile Content -->
+    <div class="profile-container">
+        <h2 class="text-3xl">Профиль</h2>
+        <img id="avatar-preview" src="https://via.placeholder.com/120?text=?" alt="Avatar Preview" class="avatar-preview">
+        <input type="file" id="avatar" accept="image/*" class="profile-input" onchange="previewAvatar()">
+        <input type="text" id="username" placeholder="Ник" class="profile-input">
+        <textarea id="description" placeholder="Описание" class="profile-textarea" rows="4"></textarea>
+        <input type="text" id="uuid" placeholder="UUID" class="profile-input" readonly>
+        <div id="effect-preview" class="effect-preview">Выберите эффект</div>
+        <select id="effect-select" class="profile-select">
+            <option value="none">Нет эффекта</option>
+            <option value="pulse">Пульсация</option>
+            <option value="spin">Вращение</option>
+            <option value="fade">Затухание</option>
+            <option value="rain">Дождь</option>
+        </select>
+        <p>Прослушано песен: <span id="songs-played">0</span></p>
+        <p>Общее время прослушивания: <span id="listening-time">0:00</span></p>
+        <h3 class="text-xl font-semibold mt-4">Управление плейлистами</h3>
+        <input type="text" id="playlist-name" placeholder="Название плейлиста" class="profile-input">
+        <button onclick="addPlaylist()" class="profile-button">Добавить плейлист</button>
+        <div id="playlists" class="mt-2"></div>
+        <h3 class="text-xl font-semibold mt-4">Настройки уведомлений</h3>
+        <label><input type="checkbox" id="notifications"> Включить уведомления</label>
+        <h3 class="text-xl font-semibold mt-4">Выбор языка</h3>
+        <select id="language" class="profile-select">
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+            <option value="uk">Українська</option>
+        </select>
+        <button onclick="saveProfile()" class="profile-button mt-4">Сохранить</button>
+    </div>
+
+    <script>
+        const themes = {
+            'purple-blue': {
+                '--body-bg': 'linear-gradient(135deg, #1e1e3f, #2a1b5e)',
+                '--card-bg': 'linear-gradient(145deg, rgba(40, 30, 90, 0.3), rgba(60, 50, 120, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #a78bff, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #7c3aed, #4f46e5)',
+                '--button-hover-bg': 'linear-gradient(to right, #9f67fa, #6b7280)',
+                '--accent-color': '#a78bff',
+                '--secondary-color': '#7c3aed',
+                '--border-color': 'rgba(167, 139, 255, 0.2)'
+            },
+            'red-black': {
+                '--body-bg': 'linear-gradient(135deg, #2b0000, #1a0000)',
+                '--card-bg': 'linear-gradient(145deg, rgba(50, 0, 0, 0.3), rgba(80, 0, 0, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ff4d4d, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cc0000, #990000)',
+                '--button-hover-bg': 'linear-gradient(to right, #ff6666, #6b7280)',
+                '--accent-color': '#ff4d4d',
+                '--secondary-color': '#cc0000',
+                '--border-color': 'rgba(255, 77, 77, 0.2)'
+            },
+            'green-teal': {
+                '--body-bg': 'linear-gradient(135deg, #002b2b, #001a1a)',
+                '--card-bg': 'linear-gradient(145deg, rgba(0, 50, 50, 0.3), rgba(0, 80, 80, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #00cc99, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #009966, #006644)',
+                '--button-hover-bg': 'linear-gradient(to right, #33ffcc, #6b7280)',
+                '--accent-color': '#00cc99',
+                '--secondary-color': '#009966',
+                '--border-color': 'rgba(0, 204, 153, 0.2)'
+            },
+            'black-white': {
+                '--body-bg': 'linear-gradient(135deg, #1a1a1a, #2b2b2b)',
+                '--card-bg': 'linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ffffff, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cccccc, #999999)',
+                '--button-hover-bg': 'linear-gradient(to right, #ffffff, #6b7280)',
+                '--accent-color': '#ffffff',
+                '--secondary-color': '#cccccc',
+                '--border-color': 'rgba(255, 255, 255, 0.2)'
+            },
+            'green-red': {
+                '--body-bg': 'linear-gradient(135deg, #1a3c34, #3c1a1a)',
+                '--card-bg': 'linear-gradient(145deg, rgba(0, 80, 60, 0.3), rgba(80, 0, 0, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ff3333, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cc3333, #006633)',
+                '--button-hover-bg': 'linear-gradient(to right, #ff6666, #6b7280)',
+                '--accent-color': '#ff3333',
+                '--secondary-color': '#cc3333',
+                '--border-color': 'rgba(255, 51, 51, 0.2)'
+            },
+            'blue-pink': {
+                '--body-bg': 'linear-gradient(135deg, #e0f7ff, #ffe0f0)',
+                '--card-bg': 'linear-gradient(145deg, rgba(100, 180, 255, 0.3), rgba(255, 100, 180, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ff66cc, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #3399ff

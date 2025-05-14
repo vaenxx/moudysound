@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moudy Sound - Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Benzin Bold';
+            src: url('fonts/Benzin-Bold.otf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        body {
+            background: var(--body-bg, linear-gradient(135deg, #1a1a1a, #2b2b2b));
+            color: #d8d8f0;
+            font-family: 'Inter', 'Arial', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 0.5s ease;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .starry-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+            opacity: 0.3;
+            z-index: -1;
+            animation: twinkle 10s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+        .auth-container {
+            background: var(--card-bg, linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2)));
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .auth-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        h2 {
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            color: #ffffff;
+            text-align: center;
+        }
+        .auth-input {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-family: 'Inter', 'Arial', sans-serif;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--accent-color, #ffffff);
+            box-shadow: 0 0 8px var(--accent-color, #ffffff);
+        }
+        .auth-button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            background: var(--button-bg, linear-gradient(to right, #cccccc, #999999));
+            color: #ffffff;
+            font-family: 'Benzin Bold', 'Arial', sans-serif;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+        .auth-button:hover {
+            background: var(--button-hover-bg, linear-gradient(to right, #ffffff, #6b7280));
+            box-shadow: 0 0 15px var(--accent-color, #ffffff);
+        }
+        .auth-link {
+            color: var(--accent-color, #ffffff);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .auth-link:hover {
+            color: var(--secondary-color, #cccccc);
+        }
+        .avatar-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color, rgba(255, 255, 255, 0.2));
+            margin: 0 auto 1rem;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Starry Background -->
+    <div class="starry-bg"></div>
+
+    <!-- Register Form -->
+    <div class="auth-container">
+        <h2 class="text-3xl mb-6">Регистрация</h2>
+        <div>
+            <img id="avatar-preview" src="https://via.placeholder.com/80?text=?" alt="Avatar Preview" class="avatar-preview">
+            <input type="file" id="avatar" accept="image/*" class="auth-input" onchange="previewAvatar()">
+            <input type="text" id="username" placeholder="Имя пользователя" class="auth-input">
+            <input type="password" id="password" placeholder="Пароль" class="auth-input">
+            <button onclick="register()" class="auth-button">Зарегистрироваться</button>
+            <p class="text-center mt-4">
+                Уже есть аккаунт? <a href="login.html" class="auth-link">Войти</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const themes = {
+            'purple-blue': {
+                '--body-bg': 'linear-gradient(135deg, #1e1e3f, #2a1b5e)',
+                '--card-bg': 'linear-gradient(145deg, rgba(40, 30, 90, 0.3), rgba(60, 50, 120, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #a78bff, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #7c3aed, #4f46e5)',
+                '--button-hover-bg': 'linear-gradient(to right, #9f67fa, #6b7280)',
+                '--accent-color': '#a78bff',
+                '--secondary-color': '#7c3aed',
+                '--border-color': 'rgba(167, 139, 255, 0.2)'
+            },
+            'red-black': {
+                '--body-bg': 'linear-gradient(135deg, #2b0000, #1a0000)',
+                '--card-bg': 'linear-gradient(145deg, rgba(50, 0, 0, 0.3), rgba(80, 0, 0, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ff4d4d, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cc0000, #990000)',
+                '--button-hover-bg': 'linear-gradient(to right, #ff6666, #6b7280)',
+                '--accent-color': '#ff4d4d',
+                '--secondary-color': '#cc0000',
+                '--border-color': 'rgba(255, 77, 77, 0.2)'
+            },
+            'green-teal': {
+                '--body-bg': 'linear-gradient(135deg, #002b2b, #001a1a)',
+                '--card-bg': 'linear-gradient(145deg, rgba(0, 50, 50, 0.3), rgba(0, 80, 80, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #00cc99, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #009966, #006644)',
+                '--button-hover-bg': 'linear-gradient(to right, #33ffcc, #6b7280)',
+                '--accent-color': '#00cc99',
+                '--secondary-color': '#009966',
+                '--border-color': 'rgba(0, 204, 153, 0.2)'
+            },
+            'black-white': {
+                '--body-bg': 'linear-gradient(135deg, #1a1a1a, #2b2b2b)',
+                '--card-bg': 'linear-gradient(145deg, rgba(30, 30, 30, 0.3), rgba(50, 50, 50, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ffffff, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cccccc, #999999)',
+                '--button-hover-bg': 'linear-gradient(to right, #ffffff, #6b7280)',
+                '--accent-color': '#ffffff',
+                '--secondary-color': '#cccccc',
+                '--border-color': 'rgba(255, 255, 255, 0.2)'
+            },
+            'green-red': {
+                '--body-bg': 'linear-gradient(135deg, #1a3c34, #3c1a1a)',
+                '--card-bg': 'linear-gradient(145deg, rgba(0, 80, 60, 0.3), rgba(80, 0, 0, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ff3333, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #cc3333, #006633)',
+                '--button-hover-bg': 'linear-gradient(to right, #ff6666, #6b7280)',
+                '--accent-color': '#ff3333',
+                '--secondary-color': '#cc3333',
+                '--border-color': 'rgba(255, 51, 51, 0.2)'
+            },
+            'blue-pink': {
+                '--body-bg': 'linear-gradient(135deg, #e0f7ff, #ffe0f0)',
+                '--card-bg': 'linear-gradient(145deg, rgba(100, 180, 255, 0.3), rgba(255, 100, 180, 0.2))',
+                '--progress-bg': 'linear-gradient(to right, #ff66cc, #6b7280)',
+                '--button-bg': 'linear-gradient(to right, #3399ff, #ff3399)',
+                '--button-hover-bg': 'linear-gradient(to right, #66b2ff, #6b7280)',
+                '--accent-color': '#ff66cc',
+                '--secondary-color': '#3399ff',
+                '--border-color': 'rgba(255, 102, 204, 0.2)'
+            }
+        };
+
+        function applyTheme(theme) {
+            if (!themes[theme]) {
+                console.error('Тема не найдена:', theme);
+                return;
+            }
+            const root = document.documentElement;
+            Object.entries(themes[theme]).forEach(([key, value]) => {
+                root.style.setProperty(key, value);
+            });
+        }
+
+        // Load saved theme or default to black-white
+        const savedTheme = localStorage.getItem('theme') || 'black-white';
+        if (themes[savedTheme]) {
+            applyTheme(savedTheme);
+        } else {
+            console.warn('Сохранённая тема не найдена, применяем black-white');
+            applyTheme('black-white');
+        }
+
+        function previewAvatar() {
+            const avatarInput = document.getElementById('avatar');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const file = avatarInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const avatarInput = document.getElementById('avatar');
+            const avatarFile = avatarInput.files[0];
+            let avatarDataURL = null;
+
+            if (avatarFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarDataURL = e.target.result;
+                    saveUser(username, password, avatarDataURL);
+                };
+                reader.readAsDataURL(avatarFile);
+            } else {
+                saveUser(username, password, null);
+            }
+        }
+
+        function saveUser(username, password, avatar) {
+            if (!username || !password) {
+                alert('Пожалуйста, заполните все поля!');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.some(user => user.username === username)) {
+                alert('Пользователь с таким именем уже существует!');
+                return;
+            }
+
+            const newUser = { username, password, avatar };
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('user', JSON.stringify(newUser));
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
